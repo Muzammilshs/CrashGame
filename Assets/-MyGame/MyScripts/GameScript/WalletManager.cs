@@ -23,7 +23,7 @@ public class WalletManager : MonoBehaviour
     #endregion
 
 
-    public Text[] totalAmountTxt;
+    [SerializeField] Text[] _totalAmountTxt;
 
 
 
@@ -39,7 +39,7 @@ public class WalletManager : MonoBehaviour
     }
 
     // From server we will get total amount here.
-    double GetTotalAmount()
+    public double GetTotalAmount()
     {
         return LocalSettings.TotalAmount;
     }
@@ -52,7 +52,7 @@ public class WalletManager : MonoBehaviour
 
     public void UpdateTotalAmountTexts()
     {
-        foreach (var txt in totalAmountTxt)
+        foreach (var txt in _totalAmountTxt)
         {
             txt.text = LocalSettings.TotalAmount.ToString();
         }
