@@ -3,51 +3,62 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System;
+using Photon.Pun;
+using Photon.Realtime;
 
 
 public static class LocalSettings
 {
-    public static string TimeFormat(double timeLeft)
-    {
-        double timeLeftInSeconds = SceneManager.GetActiveScene().name != "Game" ? timeLeft * 60 : timeLeft;
+    public const string ROOM_STATE = "ROOMSTATE";
 
+
+
+
+    public static string TimeFormat(float timeLeft)
+    {
+        float timeLeftInSeconds = timeLeft;
 
         int hours = (int)(timeLeftInSeconds / 3600);
-        int minutes = (int)((timeLeftInSeconds % 3600) / 60);
+        int minutes = (int)(timeLeftInSeconds / 60);
         int seconds = (int)(timeLeftInSeconds % 60);
 
+        string formattedTimeLeft;
+        if (hours > 0)
+            formattedTimeLeft = $"{hours}:{minutes:D2}:{seconds:D2}";
+        else if (minutes > 0)
+            formattedTimeLeft = $"{minutes:D2}:{seconds:D2}";
+        else if (seconds >= 0)
+            formattedTimeLeft = $"{seconds:D2}s";
+        else
+            formattedTimeLeft = $"0s";
 
-        string second = SceneManager.GetActiveScene().name == "Game" ? $":{seconds:D2}s" : "";
-
-        string formattedTimeLeft = $"{hours:D2}h:{minutes:D2}m{second}";
-
-
-        Debug.Log("Formatted Time Left: " + formattedTimeLeft);
         return formattedTimeLeft;
-
     }
 
 
     public static void SetPosAndRect(GameObject InstantiatedObj, RectTransform ALReadyObjPos, Transform Parentobj)
     {
         InstantiatedObj.transform.parent = Parentobj;
-        RectTransform MyPlayerRectTransform = InstantiatedObj.GetComponent<RectTransform>();
-        MyPlayerRectTransform.localScale = ALReadyObjPos.localScale;
-        MyPlayerRectTransform.localPosition = ALReadyObjPos.localPosition;
-        MyPlayerRectTransform.anchorMin = ALReadyObjPos.anchorMin;
-        MyPlayerRectTransform.anchorMax = ALReadyObjPos.anchorMax;
-        MyPlayerRectTransform.anchoredPosition = ALReadyObjPos.anchoredPosition;
-        MyPlayerRectTransform.sizeDelta = ALReadyObjPos.sizeDelta;
-        MyPlayerRectTransform.localRotation = ALReadyObjPos.localRotation;
+        RectTransform myPlayerRectTransform = InstantiatedObj.GetComponent<RectTransform>();
+        myPlayerRectTransform.localScale = ALReadyObjPos.localScale;
+        myPlayerRectTransform.localPosition = ALReadyObjPos.localPosition;
+        myPlayerRectTransform.anchorMin = ALReadyObjPos.anchorMin;
+        myPlayerRectTransform.anchorMax = ALReadyObjPos.anchorMax;
+        myPlayerRectTransform.anchoredPosition = ALReadyObjPos.anchoredPosition;
+        myPlayerRectTransform.sizeDelta = ALReadyObjPos.sizeDelta;
+        myPlayerRectTransform.localRotation = ALReadyObjPos.localRotation;
 
     }
 
-    const string totalAmount = "total_amount";
-    const string defaultAmount = "1000";
+    const string TOTAL_AMOUNT = "total_amount";
+    const string DEFAULT_AMOUNT = "1000";
     public static double TotalAmount
     {
-        get => Convert.ToDouble(PlayerPrefs.GetString(totalAmount, "1000"));
-        set => PlayerPrefs.SetString(totalAmount, value.ToString());
+        get => Convert.ToDouble(PlayerPrefs.GetString(TOTAL_AMOUNT, "1000"));
+        set => PlayerPrefs.SetString(TOTAL_AMOUNT, value.ToString());
     }
-
+    public static Room GetCurrentRoom
+    {
+        get => PhotonNetwork.CurrentRoom;
+    }
 }

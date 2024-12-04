@@ -17,6 +17,7 @@ public class BettingManager : MonoBehaviour
         _currentBetAmount = 0;
         _currentMultiplier = 2.0f;
         betAmountTxt.text = _currentBetAmount.ToString();
+        multiplierTxt.text = _currentMultiplier.ToString();
     }
 
     #region Current bet setting
@@ -64,8 +65,6 @@ public class BettingManager : MonoBehaviour
     }
     #endregion
 
-
-
     #region Current multiplier setting
 
     public void SetMultiplier(bool isAdd)
@@ -107,7 +106,7 @@ public class BettingManager : MonoBehaviour
             multiplier = 0;
         }
         _currentMultiplier = multiplier;
-        betAmountTxt.text = _currentMultiplier.ToString();
+        multiplierTxt.text = _currentMultiplier.ToString();
         ;
     }
 
