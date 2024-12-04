@@ -50,7 +50,8 @@ public class GameStartManager : MonoBehaviourPunCallbacks
     {
         _gameStartWaitTime = GAMESTARTWAITTIME;
         _remainingGameStartTime = _gameStartWaitTime;
-        GetDelayTimeBetweenRounds();
+
+        PlayerLogin.instance.GetPlayerData();
     }
     public void GetGameStartWaitTimeFromServer()
     {

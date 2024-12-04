@@ -41,12 +41,12 @@ public class WalletManager : MonoBehaviour
     // From server we will get total amount here.
     public double GetTotalAmount()
     {
-        return LocalSettings.TotalAmount;
+        return LocalSettings.walletAmount;
     }
 
     public void AddToTotalAmount(double amount)
     {
-        LocalSettings.TotalAmount += amount;
+        LocalSettings.walletAmount += amount;
         UpdateTotalAmountTexts();
     }
 
@@ -54,7 +54,7 @@ public class WalletManager : MonoBehaviour
     {
         foreach (var txt in _totalAmountTxt)
         {
-            txt.text = LocalSettings.TotalAmount.ToString();
+            txt.text = LocalSettings.walletAmount.ToString();
         }
     }
 

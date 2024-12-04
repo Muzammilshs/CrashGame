@@ -13,7 +13,6 @@ public class PlayerInfo : MonoBehaviourPunCallbacks
         GameManager.instance.SetPlayerPos(gameObject);
         _photonView = GetComponent<PhotonView>();
         _playerNameTxt.text = _photonView.Controller.NickName;
-        Debug.LogError("Player in room:  " + _photonView.Controller.NickName);
         GameManager.instance.AddPlayerToList(gameObject);
     }
 

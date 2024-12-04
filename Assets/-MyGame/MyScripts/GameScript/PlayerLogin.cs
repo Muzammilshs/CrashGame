@@ -1,45 +1,81 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
 
-public class PlayerLogin : MonoBehaviour
+public class PlayerLogin : ES3Cloud
 {
+    #region Creating Instance
+    public PlayerLogin(string url, string apiKey) : base(url, apiKey)
+    {
+    }
+    private static PlayerLogin _instance;
 
-    //IEnumerator SendDonationToKingdomAPIURL(string sendingAmount)
-    //{
-    //    string url = APIStrings.getPlayerDetailAPIURL;
-    //    formData = new List<KeyValuePair<string, string>>();
-    //    AddPOSTField(donationIDConst, donationStatusCls.donation_id.ToString());
-    //    AddPOSTField(userIDConst, LocalSettings.MainID);
-    //    AddPOSTField(nameConst, Enums.Resources.eggs.ToString());
-    //    AddPOSTField(amountConst, sendingAmount);
+    public static PlayerLogin instance
+    {
+        get
+        {
+            if (_instance == null)
+                _instance = FindFirstObjectByType<PlayerLogin>();
+            return _instance;
+        }
+    }
+    private void Awake()
+    {
+        if (_instance == null)
+            _instance = this;
+    }
+    #endregion
+
+    const string USERNAME = "username";
+    const string EMAIL = "email";
+    const string WALLETNUMBER = "wallet_number";
+    public void GetPlayerData()
+    {
+        formData = new List<KeyValuePair<string, string>>();
+        string playerName = "Muzammil New";
+        string email = "muzammilNew@gmail.com";
+        string walletNumber = "1234567890";
+
+        AddPOSTField(USERNAME, playerName);
+        AddPOSTField(EMAIL, email);
+        AddPOSTField(WALLETNUMBER, walletNumber);
+        GetJson.instance.PostDataAndGetResponseFromServer(APIStrings.getPlayerDetailAPIURL, formData, ParseJson);
+    }
 
 
-    //    WWWForm form = CreateWWWForm();
+    public void ParseJson(string json, bool isSuccess)
+    {
+        Debug.LogError($"Json Response: {json}     \nSuccess status: {isSuccess}");
+        if (!isSuccess)
+            return;
+        PlayerLoginRootCls playerLoginRootCls = JsonConvert.DeserializeObject<PlayerLoginRootCls>(json);
+        LocalSettings.userName = playerLoginRootCls.data.username;
+        LocalSettings.emailID = playerLoginRootCls.data.email;
+        LocalSettings.walletID = playerLoginRootCls.data.wallet_number;
+        LocalSettings.walletAmount = Convert.ToDouble(playerLoginRootCls.data.wallet_balance);
+        LocalSettings.isBlocked = playerLoginRootCls.data.status == "Active" ? false : true;
 
-    //    using (var webRequest = UnityWebRequest.Post(url, form))
-    //    {
-    //        webRequest.timeout = 15;
-    //        yield return SendWebRequest(webRequest);
-    //        HandleError(webRequest, true);
-    //        if (webRequest.result != UnityWebRequest.Result.Success)
-    //        {
-    //            Debug.LogError("Result: " + webRequest.result + "\nFail Json: " + webRequest.downloadHandler.text + "\n Error: " + webRequest.error + "\n Response Code: " + webRequest.responseCode + "\n Result: " + webRequest.result);
-    //            RefMgr.Instance.ShowJsonMessage(webRequest.downloadHandler.text);
-    //        }
-    //        else
-    //        {
-    //            string jsonResponse = webRequest.downloadHandler.text;
-    //            Debug.LogError("Get Detail Json String: " + jsonResponse);
-    //            RefMgr.Instance.ShowJsonMessage(jsonResponse);
-    //            StartCoroutine(GetDonationSystemStatusAPIURL(LocalSettings.AllianceID, FillDonationFields));
-    //            RefreshMainUIItemsNAllianceMembersList();
-    //            sendDonatinPanel.SetActive(false);
-    //        }
-    //    }
-    //    RefMgr.Instance.ShowLoadingPanel(false);
-    //}
+        GameStartManager.instance.GetDelayTimeBetweenRounds();
+    }
 }
+
+public class UserDetailCls
+{
+    public string username { get; set; }
+    public string email { get; set; }
+    public string wallet_number { get; set; }
+    public string wallet_balance { get; set; }
+    public string status { get; set; }
+}
+
+public class PlayerLoginRootCls
+{
+    public bool success { get; set; }
+    public string message { get; set; }
+    public UserDetailCls data { get; set; }
+}
+

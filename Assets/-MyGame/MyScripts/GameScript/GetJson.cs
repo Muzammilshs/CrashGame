@@ -5,10 +5,15 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 
-public class GetJson : MonoBehaviour
+public class GetJson : ES3Cloud
 {
     #region Creating Instance
     private static GetJson _instance;
+
+    public GetJson(string url, string apiKey) : base(url, apiKey)
+    {
+    }
+
     public static GetJson instance
     {
         get
@@ -26,6 +31,8 @@ public class GetJson : MonoBehaviour
     }
     #endregion
 
+
+    #region get data from server
     public void GetJsonFromServer(string apiURL, Action<string, bool> methodCall)
     {
         StartCoroutine(GetJsonFromServerUsingAPI(apiURL, methodCall));
@@ -54,4 +61,44 @@ public class GetJson : MonoBehaviour
             }
         }
     }
+
+    #endregion
+
+
+    #region Get player data from server
+
+
+
+    public void PostDataAndGetResponseFromServer(string url, List<KeyValuePair<string, string>> formData, Action<string, bool> methodCall)
+    {
+        StartCoroutine(GetPlayerLoginAPIURL(url, formData, methodCall));
+    }
+    IEnumerator GetPlayerLoginAPIURL(string url, List<KeyValuePair<string, string>> formData, Action<string, bool> methodCall)
+    {
+        WWWForm form = new WWWForm();
+        foreach (var field in formData)
+        {
+            form.AddField(field.Key, field.Value);
+        }
+        using (var webRequest = UnityWebRequest.Post(url, form))
+        {
+            webRequest.timeout = 15;
+            yield return SendWebRequest(webRequest);
+            HandleError(webRequest, true);
+            if (webRequest.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError("Result: " + webRequest.result + "\nFail Json: " + webRequest.downloadHandler.text + "\n Error: " + webRequest.error + "\n Response Code: " + webRequest.responseCode + "\n Result: " + webRequest.result);
+                methodCall?.Invoke(webRequest.downloadHandler.text, false);
+            }
+            else
+            {
+                string jsonResponse = webRequest.downloadHandler.text;
+                Debug.LogError("Get Detail Json String: " + jsonResponse);
+                methodCall?.Invoke(webRequest.downloadHandler.text, true);
+            }
+        }
+    }
+
+
+    #endregion
 }

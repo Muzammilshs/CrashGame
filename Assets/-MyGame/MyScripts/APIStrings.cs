@@ -1,7 +1,7 @@
 
 public static class APIStrings
 {
-    static string prefixURL => prefixURL + "https://kryzer.fitnessinfo.uk/wp-json/";
+    static string prefixURL => "https://kryzer.fitnessinfo.uk/wp-json/";
 
     #region APIs
 

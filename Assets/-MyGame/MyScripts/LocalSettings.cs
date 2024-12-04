@@ -36,29 +36,54 @@ public static class LocalSettings
     }
 
 
-    public static void SetPosAndRect(GameObject InstantiatedObj, RectTransform ALReadyObjPos, Transform Parentobj)
+    public static void SetPosAndRect(GameObject instantiatedObj, RectTransform aLReadyObjPos, Transform parentobj)
     {
-        InstantiatedObj.transform.parent = Parentobj;
-        RectTransform myPlayerRectTransform = InstantiatedObj.GetComponent<RectTransform>();
-        myPlayerRectTransform.localScale = ALReadyObjPos.localScale;
-        myPlayerRectTransform.localPosition = ALReadyObjPos.localPosition;
-        myPlayerRectTransform.anchorMin = ALReadyObjPos.anchorMin;
-        myPlayerRectTransform.anchorMax = ALReadyObjPos.anchorMax;
-        myPlayerRectTransform.anchoredPosition = ALReadyObjPos.anchoredPosition;
-        myPlayerRectTransform.sizeDelta = ALReadyObjPos.sizeDelta;
-        myPlayerRectTransform.localRotation = ALReadyObjPos.localRotation;
+        instantiatedObj.transform.parent = parentobj;
+        RectTransform myPlayerRectTransform = instantiatedObj.GetComponent<RectTransform>();
+        myPlayerRectTransform.localScale = aLReadyObjPos.localScale;
+        myPlayerRectTransform.localPosition = aLReadyObjPos.localPosition;
+        myPlayerRectTransform.anchorMin = aLReadyObjPos.anchorMin;
+        myPlayerRectTransform.anchorMax = aLReadyObjPos.anchorMax;
+        myPlayerRectTransform.anchoredPosition = aLReadyObjPos.anchoredPosition;
+        myPlayerRectTransform.sizeDelta = aLReadyObjPos.sizeDelta;
+        myPlayerRectTransform.localRotation = aLReadyObjPos.localRotation;
 
     }
 
     const string TOTAL_AMOUNT = "total_amount";
     const string DEFAULT_AMOUNT = "1000";
-    public static double TotalAmount
+    public static double walletAmount
     {
-        get => Convert.ToDouble(PlayerPrefs.GetString(TOTAL_AMOUNT, "1000"));
+        get => Convert.ToDouble(PlayerPrefs.GetString(TOTAL_AMOUNT));
         set => PlayerPrefs.SetString(TOTAL_AMOUNT, value.ToString());
     }
     public static Room GetCurrentRoom
     {
         get => PhotonNetwork.CurrentRoom;
+    }
+    const string EMAIL = "email";
+    public static string emailID
+    {
+        get => PlayerPrefs.GetString(EMAIL);
+        set => PlayerPrefs.SetString(EMAIL, value);
+    }
+
+    const string WALLETID = "walletID";
+    public static string walletID
+    {
+        get => PlayerPrefs.GetString(WALLETID);
+        set => PlayerPrefs.SetString(WALLETID, value);
+    }
+    const string ISBLOCKED = "is_blocked";
+    public static bool isBlocked
+    {
+        get => PlayerPrefs.GetString(ISBLOCKED, "0") == "0" ? false : true;
+        set => PlayerPrefs.GetString(ISBLOCKED, value == false ? "0" : "1");
+    }
+    const string USERNAME = "user_name";
+    public static string userName
+    {
+        get => PlayerPrefs.GetString(USERNAME);
+        set => PlayerPrefs.SetString(USERNAME, value);
     }
 }
