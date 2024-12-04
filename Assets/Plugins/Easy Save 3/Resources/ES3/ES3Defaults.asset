@@ -30,8 +30,27 @@ MonoBehaviour:
     referenceMode: 2
     serializationDepthLimit: 64
     assemblyNames:
-    - Assembly-CSharp-firstpass
     - Assembly-CSharp
+    - Assembly-CSharp-firstpass
+    - Bitsplash.GraphAndChart.Editor
+    - DA_Editor
+    - DA_Shared
+    - GraphAndChart
+    - Newtonsoft.Json.UnityConverters
+    - Newtonsoft.Json.UnityConverters.Addressables
+    - Newtonsoft.Json.UnityConverters.Editor
+    - Newtonsoft.Json.UnityConverters.Mathematics
+    - PhotonChat
+    - PhotonRealtime
+    - PhotonUnityNetworking
+    - PhotonUnityNetworking.Demos
+    - PhotonUnityNetworking.Editor
+    - PhotonUnityNetworking.Utilities
+    - PhotonUnityNetworking.Utilities.Culling.Editor
+    - PhotonUnityNetworking.Utilities.PhotonPlayer.Editor
+    - PunDemos.DemoHubEditor
+    - PunDemos.DemoSlotcarEditor
+    - ScriptablePacker
     showAdvancedSettings: 0
   addMgrToSceneAutomatically: 0
   autoUpdateReferences: 1
