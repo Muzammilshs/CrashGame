@@ -33,7 +33,7 @@ public class PlayerLogin : ES3Cloud
     const string USERNAME = "username";
     const string EMAIL = "email";
     const string WALLETNUMBER = "wallet_number";
-    public void GetPlayerData()
+    public void GetPlayerDataWithLogin()
     {
         formData = new List<KeyValuePair<string, string>>();
         string playerName = "Muzammil New";
@@ -43,13 +43,12 @@ public class PlayerLogin : ES3Cloud
         AddPOSTField(USERNAME, playerName);
         AddPOSTField(EMAIL, email);
         AddPOSTField(WALLETNUMBER, walletNumber);
-        GetJson.instance.PostDataAndGetResponseFromServer(APIStrings.getPlayerDetailAPIURL, formData, ParseJson);
+        GetJson.instance.PostDataAndGetResponseFromServer(APIStrings.getPlayerDetailAPIURL, formData, PlayerLoginDetailParseJson);
     }
 
 
-    public void ParseJson(string json, bool isSuccess)
+    public void PlayerLoginDetailParseJson(string json, bool isSuccess)
     {
-        Debug.LogError($"Json Response: {json}     \nSuccess status: {isSuccess}");
         if (!isSuccess)
             return;
         PlayerLoginRootCls playerLoginRootCls = JsonConvert.DeserializeObject<PlayerLoginRootCls>(json);
@@ -60,6 +59,17 @@ public class PlayerLogin : ES3Cloud
         LocalSettings.isBlocked = playerLoginRootCls.data.status == "Active" ? false : true;
 
         GameStartManager.instance.GetDelayTimeBetweenRounds();
+        // Join Room 
+        if (!LocalSettings.isBlocked)
+        {
+            RoomManager.instance.JoinOrCreateRoom();
+            GameManager.isPlayerLogedIn = true;
+        }
+        else
+        {
+            // If blocked then functionality here
+            GameManager.isPlayerLogedIn = false;
+        }
     }
 }
 

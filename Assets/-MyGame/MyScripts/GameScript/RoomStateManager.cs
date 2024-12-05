@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
 using UnityEngine;
+using static RoomNPlayerState;
 
 public class RoomStateManager : MonoBehaviourPunCallbacks
 {
@@ -25,17 +26,17 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
     #endregion
 
 
-    public RoomNPlayerState.ROOMSTATE currentRoomState;
+    ROOMSTATE _currentRoomState;
 
     void Start()
     {
 
     }
 
-    public RoomNPlayerState.ROOMSTATE getCurrentRoomState => currentRoomState;
+    public ROOMSTATE getCurrentRoomState => _currentRoomState;
 
 
-    public void UpdateCurrentRoomState(RoomNPlayerState.ROOMSTATE state)
+    public void UpdateCurrentRoomState(ROOMSTATE state)
     {
         if (PhotonNetwork.IsMasterClient)
         {
@@ -45,28 +46,28 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
     }
 
     [PunRPC]
-    public void UpdateThisStateOnNetwork(RoomNPlayerState.ROOMSTATE state, string info)
+    public void UpdateThisStateOnNetwork(ROOMSTATE state, string info)
     {
 
-        currentRoomState = state;
+        _currentRoomState = state;
         Debug.Log("Current State is Set to " + state);
         OnUpdateCurrentState(state, info);
     }
-    void UpdateRoomStateProperty(RoomNPlayerState.ROOMSTATE state)
+    void UpdateRoomStateProperty(ROOMSTATE state)
     {
         if (PhotonNetwork.IsConnectedAndReady)
             LocalSettings.GetCurrentRoom.SetRoomStateProperty(LocalSettings.ROOM_STATE, state);
     }
 
-    void OnUpdateCurrentState(RoomNPlayerState.ROOMSTATE state, string infoText)
+    void OnUpdateCurrentState(ROOMSTATE state, string infoText)
     {
         switch (state)
         {
-            case RoomNPlayerState.ROOMSTATE.Waiting:
+            case ROOMSTATE.Waiting:
                 TriggerStateWaitingForPlayers();
                 break;
 
-            case RoomNPlayerState.ROOMSTATE.GameIsPlaying:
+            case ROOMSTATE.GameIsPlaying:
                 TriggerStateGameIsPlaying();
                 break;
 
@@ -75,18 +76,29 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
 
     void TriggerStateWaitingForPlayers()
     {
-
+        GameManager.instance.ShowWaitingOrMultiPlierBoxInGame(true);
+        GameStartManager.instance.GetDelayTimeBetweenRounds();
+        BettingManager.instance.ActivateBettingSection(true);
+        BettingManager.instance.ResetThingsBettingManager();
     }
 
     void TriggerStateGameIsPlaying()
     {
-
+        GameManager.instance.ShowWaitingOrMultiPlierBoxInGame(false);
+        BettingManager.instance.ActivateBettingSection(true);
+        SendBetAmountAndCashOutPoint();
+        Debug.LogError("Game is started___________________________");
+        if (GameManager.instance.GetMyPlayer() != null)
+            GameManager.instance.GetMyPlayer().UpdatePlayerStateOnNetwork(PLAYERSTATE.GameIsPlaying);
+        else
+            Debug.LogError("MyPlayer is null");
+        GamePlayHandler.instance.startGameExecutionAction += GamePlayHandler.instance.StartPlayGame;
     }
     public void SetRoomStateFromNetworkCustomProperty()
     {
         UpdateCurrentRoomState(LocalSettings.GetCurrentRoom.GetRoomStateProperty(LocalSettings.ROOM_STATE));
     }
-    public bool isGameStarted => currentRoomState == RoomNPlayerState.ROOMSTATE.GameIsPlaying;
+    public bool isGameStarted => _currentRoomState == ROOMSTATE.GameIsPlaying;
 
     public override void OnJoinedRoom()
     {
@@ -94,7 +106,13 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
             SetRoomStateFromNetworkCustomProperty();
         else
         {
-            UpdateCurrentRoomState(RoomNPlayerState.ROOMSTATE.Waiting);
+            UpdateCurrentRoomState(ROOMSTATE.Waiting);
         }
+    }
+
+    public void SendBetAmountAndCashOutPoint()
+    {
+        BettingManager.instance.SendCashoutPointToServer();
+        BettingManager.instance.SendBetAmountToServer();
     }
 }

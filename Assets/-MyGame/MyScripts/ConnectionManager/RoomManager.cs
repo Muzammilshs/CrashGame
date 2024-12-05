@@ -47,17 +47,16 @@ public class RoomManager : MonoBehaviourPunCallbacks
     public override void OnConnectedToMaster()
     {
         Debug.Log("Connected to Photon Master Server.");
-        ShowLoadingScreen(false); // Hide loading screen for now
+        ShowLoadingScreen(false);
         Debug.LogError("Now creating the room");
         PhotonNetwork.NickName = "User: " + Random.RandomRange(10, 100);
-        JoinOrCreateRoom(); // Attempt to join or create a room
+        //JoinOrCreateRoom(); 
+        //GameStartManager.instance.ResetRemainingWaitTimeFromServer();
+        PlayerLogin.instance.GetPlayerDataWithLogin();
     }
 
     public void JoinOrCreateRoom()
     {
-        ShowLoadingScreen(true); // Show loading screen during the process
-
-        // Attempt to join any available room
         PhotonNetwork.JoinRandomRoom();
         Debug.Log("Attempting to join an existing room...");
     }

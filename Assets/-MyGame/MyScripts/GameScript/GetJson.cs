@@ -87,13 +87,13 @@ public class GetJson : ES3Cloud
             HandleError(webRequest, true);
             if (webRequest.result != UnityWebRequest.Result.Success)
             {
-                Debug.LogError("Result: " + webRequest.result + "\nFail Json: " + webRequest.downloadHandler.text + "\n Error: " + webRequest.error + "\n Response Code: " + webRequest.responseCode + "\n Result: " + webRequest.result);
+                //Debug.LogError("Result: " + webRequest.result + "\nFail Json: " + webRequest.downloadHandler.text + "\n Error: " + webRequest.error + "\n Response Code: " + webRequest.responseCode + "\n Result: " + webRequest.result);
                 methodCall?.Invoke(webRequest.downloadHandler.text, false);
             }
             else
             {
                 string jsonResponse = webRequest.downloadHandler.text;
-                Debug.LogError("Get Detail Json String: " + jsonResponse);
+                //Debug.LogError("Get Detail Json String: " + jsonResponse);
                 methodCall?.Invoke(webRequest.downloadHandler.text, true);
             }
         }

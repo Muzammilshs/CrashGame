@@ -6,18 +6,46 @@ using UnityEngine.UI;
 
 public class BettingManager : MonoBehaviour
 {
+    #region Creating Instance
+    private static BettingManager _instance;
+
+    public static BettingManager instance
+    {
+        get
+        {
+            if (_instance == null)
+                _instance = FindFirstObjectByType<BettingManager>();
+            return _instance;
+        }
+    }
+    private void Awake()
+    {
+        if (_instance == null)
+            _instance = this;
+    }
+    #endregion
+
     public InputField betAmountTxt;
     public InputField multiplierTxt;
     WalletManager _wm;
     double _currentBetAmount = 0;
     float _currentMultiplier = 0;
+
+
+    public Button placeBetBtn;
+    [SerializeField] Button _placeBetBtnPlus;
+    [SerializeField] Button _placeBetBtnMinus;
+
+
+    public Button autoCashOutBtn;
+    [SerializeField] Button _autoCashOutBtnPlus;
+    [SerializeField] Button _autoCashOutBtnMinus;
+
+
     void Start()
     {
         _wm = WalletManager.instance;
-        _currentBetAmount = 0;
-        _currentMultiplier = 2.0f;
-        betAmountTxt.text = _currentBetAmount.ToString();
-        multiplierTxt.text = _currentMultiplier.ToString();
+        ResetThingsBettingManager();
     }
 
     #region Current bet setting
@@ -108,6 +136,72 @@ public class BettingManager : MonoBehaviour
         _currentMultiplier = multiplier;
         multiplierTxt.text = _currentMultiplier.ToString();
         ;
+    }
+
+    #endregion
+
+
+    #region Total bet placed and auto cashout getter and 
+    public void ActivateBettingSection(bool isShow)
+    {
+        betAmountTxt.interactable = isShow;
+        multiplierTxt.interactable = isShow;
+
+        placeBetBtn.interactable = isShow;
+        _placeBetBtnPlus.interactable = isShow;
+        _placeBetBtnMinus.interactable = isShow;
+
+        autoCashOutBtn.interactable = isShow;
+        _autoCashOutBtnPlus.interactable = isShow;
+        _autoCashOutBtnMinus.interactable = isShow;
+
+        placeBetBtn.gameObject.SetActive(isShow);
+        autoCashOutBtn.gameObject.SetActive(!isShow);
+
+
+    }
+    public double TotalBetPlaced()
+    {
+        return _currentBetAmount;
+    }
+
+    public float AutoCheckOutValue()
+    {
+        return _currentMultiplier;
+    }
+
+    #endregion
+
+    #region Send bets to server on game start
+
+    public void SendBetAmountToServer()
+    {
+        if (_currentBetAmount > 0)
+        {
+            // Send bet amount to server here
+        }
+    }
+
+    public void SendCashoutPointToServer()
+    {
+        if (_currentMultiplier > 0)
+        {
+            // send cash out point to server
+        }
+    }
+
+    #endregion
+
+
+    #region Reset things
+
+    public void ResetThingsBettingManager()
+    {
+        _currentBetAmount = 0;
+        _currentMultiplier = 0;
+        betAmountTxt.text = _currentBetAmount.ToString();
+        multiplierTxt.text = _currentMultiplier.ToString();
+        ActivateBettingSection(true);
     }
 
     #endregion

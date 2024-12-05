@@ -31,6 +31,7 @@ public class GameStartManager : MonoBehaviourPunCallbacks
 
     //const int GAMESTARTWAITTIME = 120;
     [SerializeField] Text _gameStartWaitTimeTxt;
+    bool _isGameStarted = false;
 
     const int GAMESTARTWAITTIME = 0;
     int _gameStartWaitTime = 0;
@@ -41,26 +42,15 @@ public class GameStartManager : MonoBehaviourPunCallbacks
     private void Start()
     {
         _photonView = GetComponent<PhotonView>();
-        GetGameStartWaitTimeFromServer();
-        ResetRemainingWaitTime();
         _gameStartWaitTimeTxt.text = "Waiting";
-    }
-
-    void ResetRemainingWaitTime()
-    {
-        _gameStartWaitTime = GAMESTARTWAITTIME;
-        _remainingGameStartTime = _gameStartWaitTime;
-
-        PlayerLogin.instance.GetPlayerData();
-    }
-    public void GetGameStartWaitTimeFromServer()
-    {
-
     }
 
     #region Update section
     private void Update()
     {
+        if (!GameManager.isPlayerLogedIn)
+            return;
+
         if (_gameStartWaitTime <= 0)
             return;
 
@@ -75,9 +65,9 @@ public class GameStartManager : MonoBehaviourPunCallbacks
             _remainingGameStartTime -= Time.deltaTime;
             _photonView.RPC(nameof(UpDateRemainingTimeToAllPlayers), RpcTarget.All, _remainingGameStartTime);
 
-            if (_remainingGameStartTime < 0)
+            if (_remainingGameStartTime <= 0)
             {
-
+                RoomStateManager.instance.UpdateCurrentRoomState(RoomNPlayerState.ROOMSTATE.GameIsPlaying);
             }
         }
     }
@@ -98,10 +88,10 @@ public class GameStartManager : MonoBehaviourPunCallbacks
     #region Getting time delay between rounds
     public void GetDelayTimeBetweenRounds()
     {
-        GetJson.instance.GetJsonFromServer(APIStrings.getDelayTimeBetweenRoundsAPIURL, ParseJson);
+        GetJson.instance.GetJsonFromServer(APIStrings.getDelayTimeBetweenRoundsAPIURL, GetRoundTimeDelayParseJson);
     }
 
-    public void ParseJson(string json, bool isSuccess)
+    public void GetRoundTimeDelayParseJson(string json, bool isSuccess)
     {
         Debug.LogError($"Json Response: {json}     \nSuccess status: {isSuccess}");
         RoundDelayTimeCls roundDelayTimeCls = JsonConvert.DeserializeObject<RoundDelayTimeCls>(json);
@@ -111,6 +101,7 @@ public class GameStartManager : MonoBehaviourPunCallbacks
             _gameStartWaitTime = 0;
             _gameStartWaitTimeTxt.text = "Waiting";
         }
+        _gameStartWaitTime = 4;
         _remainingGameStartTime = _gameStartWaitTime;
 
 
@@ -118,8 +109,12 @@ public class GameStartManager : MonoBehaviourPunCallbacks
 
     #endregion
 }
+
+
+#region Json classes
 [Serializable]
 public class RoundDelayTimeCls
 {
     public string delay_time { get; set; }
 }
+#endregion

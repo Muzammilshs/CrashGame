@@ -32,9 +32,24 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] Text _messageTxt;
     [SerializeField] GameObject _playerPrefab;
     [SerializeField] RectTransform _playerRectPos;
+    [SerializeField] GameObject _waitingTimeBox;
+    [SerializeField] GameObject _currentMultiplierBox;
+
 
     public List<GameObject> playersList;
     public List<GameObject> playingList;
+    PlayerInfo myPlayerInfo;
+    public PlayerInfo GetMyPlayer()
+    {
+        return myPlayerInfo;
+    }
+
+    public void SetMyPlayer(PlayerInfo playerInfo)
+    {
+        myPlayerInfo = playerInfo;
+    }
+
+    public static bool isPlayerLogedIn;
     void Start()
     {
 
@@ -71,5 +86,12 @@ public class GameManager : MonoBehaviourPunCallbacks
         Debug.Log($"Successfully joined room: {PhotonNetwork.CurrentRoom.Name}");
         Debug.Log("<color=green>Room Joined successfully</color>");
         CreateThePlayer();
+    }
+
+
+    public void ShowWaitingOrMultiPlierBoxInGame(bool isWaiting)
+    {
+        _waitingTimeBox.SetActive(isWaiting);
+        _currentMultiplierBox.SetActive(!isWaiting);
     }
 }
