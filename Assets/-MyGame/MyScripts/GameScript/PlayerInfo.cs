@@ -30,6 +30,14 @@ public class PlayerInfo : MonoBehaviourPunCallbacks
 
                 BettingManager.instance.placeBetBtn.interactable = false;
                 BettingManager.instance.autoCashOutBtn.gameObject.SetActive(false);
+                GameManager.instance.ShowWaitingOrMultiPlierBoxInGame(false);
+            }
+            else
+            {
+                UpdatePlayerStateOnNetwork(PLAYERSTATE.Waiting);
+                GamePlayHandler.instance.ResetValuesBeforeGameStart();
+                BettingManager.instance.ResetThingsBettingManager();
+                GameManager.instance.ShowWaitingOrMultiPlierBoxInGame(true);
             }
         }
 
@@ -45,5 +53,27 @@ public class PlayerInfo : MonoBehaviourPunCallbacks
     public void UpdatePlayerStateOnNetwork(PLAYERSTATE state)
     {
         _playerState.SetPlayerState(state);
+    }
+
+    public void ShowCashOutPointToOtherPlayers()
+    {
+        GamePlayHandler.instance.RocketPosXY(out float x, out float y);
+        float xVal = x;
+        float yVal = y;
+        Debug.LogError($"Positions got: x: {x}, y: {y}");
+        _photonView.RPC(nameof(ShowCashOutPointToOtherPlayersRPC), RpcTarget.All, xVal, yVal);
+    }
+
+    [PunRPC]
+    public void ShowCashOutPointToOtherPlayersRPC(float x, float y)
+    {
+        Debug.LogError($"All players get: {x}, y: {y}");
+
+        GameObject sign = GamePlayHandler.instance.GetCashOutPlayerSign();
+        sign.transform.GetChild(1).GetComponent<Text>().text = _photonView.Controller.NickName;
+        RectTransform signRect = sign.GetComponent<RectTransform>();
+
+        signRect.anchoredPosition = new Vector2(x, y);
+
     }
 }

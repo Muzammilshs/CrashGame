@@ -41,7 +41,7 @@ public class BettingManager : MonoBehaviour
     [SerializeField] Button _autoCashOutBtnPlus;
     [SerializeField] Button _autoCashOutBtnMinus;
 
-
+    bool _isPlayerPlacedBet;
     void Start()
     {
         _wm = WalletManager.instance;
@@ -74,6 +74,8 @@ public class BettingManager : MonoBehaviour
             _currentBetAmount = tempAmount;
             betAmountTxt.text = _currentBetAmount.ToString();
         }
+        _isPlayerPlacedBet = false;
+        placeBetBtn.interactable = true;
     }
 
     public void OnValueChangeBetAmount()
@@ -87,9 +89,12 @@ public class BettingManager : MonoBehaviour
         {
             amount = 0;
         }
+        _isPlayerPlacedBet = false;
+
         _currentBetAmount = amount;
         betAmountTxt.text = _currentBetAmount.ToString();
-        ;
+        placeBetBtn.interactable = true;
+
     }
     #endregion
 
@@ -135,7 +140,6 @@ public class BettingManager : MonoBehaviour
         }
         _currentMultiplier = multiplier;
         multiplierTxt.text = _currentMultiplier.ToString();
-        ;
     }
 
     #endregion
@@ -151,7 +155,7 @@ public class BettingManager : MonoBehaviour
         _placeBetBtnPlus.interactable = isShow;
         _placeBetBtnMinus.interactable = isShow;
 
-        autoCashOutBtn.interactable = isShow;
+        autoCashOutBtn.interactable = !isShow;
         _autoCashOutBtnPlus.interactable = isShow;
         _autoCashOutBtnMinus.interactable = isShow;
 
@@ -170,25 +174,31 @@ public class BettingManager : MonoBehaviour
         return _currentMultiplier;
     }
 
+    public void DisableCashOutbtn(bool isEnable)
+    {
+        autoCashOutBtn.interactable = isEnable;
+    }
     #endregion
 
     #region Send bets to server on game start
 
     public void SendBetAmountToServer()
     {
-        if (_currentBetAmount > 0)
-        {
-            // Send bet amount to server here
-        }
-    }
+        if (!_isPlayerPlacedBet)
+            return;
+        float autoCashoutMultiplier = 0;
 
-    public void SendCashoutPointToServer()
-    {
         if (_currentMultiplier > 0)
         {
             // send cash out point to server
         }
+        if (_currentBetAmount > 0)
+        {
+
+            // Send bet amount and auto cash point to server here
+        }
     }
+
 
     #endregion
 
@@ -202,7 +212,34 @@ public class BettingManager : MonoBehaviour
         betAmountTxt.text = _currentBetAmount.ToString();
         multiplierTxt.text = _currentMultiplier.ToString();
         ActivateBettingSection(true);
+        _isPlayerPlacedBet = false;
     }
 
     #endregion
+
+    #region Place bet Btn click  and cashout btn click
+
+    public void OnPlaceBetBtnClick()
+    {
+        if (!GameManager.isPlayerLogedIn)
+        {
+            Debug.LogError("First login before placing bet");
+            return;
+        }
+        placeBetBtn.interactable = false;
+
+        _isPlayerPlacedBet = _currentBetAmount > 0 ? true : false;
+
+    }
+
+    public void OnCashOutBtnClick()
+    {
+        float cashOutMultiplierSendToServer = GamePlayHandler.instance.GetCurrentMultiplierPointOnCashOut();
+        Debug.LogError("Cashing out start at multiplier: ");
+        GameManager.instance.GetMyPlayer().ShowCashOutPointToOtherPlayers();
+        autoCashOutBtn.interactable = false;
+    }
+
+    #endregion
+
 }

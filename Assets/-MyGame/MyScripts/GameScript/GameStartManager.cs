@@ -63,7 +63,7 @@ public class GameStartManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.IsMasterClient)
         {
             _remainingGameStartTime -= Time.deltaTime;
-            _photonView.RPC(nameof(UpDateRemainingTimeToAllPlayers), RpcTarget.All, _remainingGameStartTime);
+            _photonView.RPC(nameof(UpDateRemainingTimeToAllPlayersRPC), RpcTarget.All, _remainingGameStartTime);
 
             if (_remainingGameStartTime <= 0)
             {
@@ -72,7 +72,7 @@ public class GameStartManager : MonoBehaviourPunCallbacks
         }
     }
     [PunRPC]
-    public void UpDateRemainingTimeToAllPlayers(float remTime)
+    public void UpDateRemainingTimeToAllPlayersRPC(float remTime)
     {
         if (!PhotonNetwork.IsMasterClient)
         {
@@ -101,7 +101,7 @@ public class GameStartManager : MonoBehaviourPunCallbacks
             _gameStartWaitTime = 0;
             _gameStartWaitTimeTxt.text = "Waiting";
         }
-        _gameStartWaitTime = 4;
+        _gameStartWaitTime = 25;
         _remainingGameStartTime = _gameStartWaitTime;
 
 

@@ -33,20 +33,21 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject _playerPrefab;
     [SerializeField] RectTransform _playerRectPos;
     [SerializeField] GameObject _waitingTimeBox;
+    [SerializeField] GameObject _gamePlayBox;
     [SerializeField] GameObject _currentMultiplierBox;
 
 
     public List<GameObject> playersList;
     public List<GameObject> playingList;
-    PlayerInfo myPlayerInfo;
+    PlayerInfo _myPlayerInfo;
     public PlayerInfo GetMyPlayer()
     {
-        return myPlayerInfo;
+        return _myPlayerInfo;
     }
 
     public void SetMyPlayer(PlayerInfo playerInfo)
     {
-        myPlayerInfo = playerInfo;
+        _myPlayerInfo = playerInfo;
     }
 
     public static bool isPlayerLogedIn;
@@ -93,5 +94,6 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         _waitingTimeBox.SetActive(isWaiting);
         _currentMultiplierBox.SetActive(!isWaiting);
+        _gamePlayBox.SetActive(!isWaiting);
     }
 }

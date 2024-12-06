@@ -19,6 +19,8 @@ public class PlayerState : MonoBehaviourPunCallbacks
 
     public void SetPlayerState(RoomNPlayerState.PLAYERSTATE playerState)
     {
+        if (_photonView == null)
+            _photonView = GetComponent<PhotonView>();
         _photonView.RPC(nameof(SetUpdatePlayerStateOnNetwork), RpcTarget.All, playerState);
     }
     [PunRPC]

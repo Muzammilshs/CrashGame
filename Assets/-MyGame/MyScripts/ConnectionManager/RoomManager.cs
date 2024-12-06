@@ -103,11 +103,6 @@ public class RoomManager : MonoBehaviourPunCallbacks
 
     public override void OnDisconnected(DisconnectCause cause)
     {
-        //Debug.LogWarning($"Disconnected from Photon: {cause}. Attempting to reconnect...");
-        //ShowLoadingScreen(true); // Show loading screen on disconnection
-        //PhotonNetwork.ConnectUsingSettings(); // Attempt to reconnect
-
-
 
         Debug.LogWarning($"Disconnected from Photon: {cause}. Attempting to reconnect...");
 

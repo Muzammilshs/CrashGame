@@ -85,7 +85,7 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
     void TriggerStateGameIsPlaying()
     {
         GameManager.instance.ShowWaitingOrMultiPlierBoxInGame(false);
-        BettingManager.instance.ActivateBettingSection(true);
+        BettingManager.instance.ActivateBettingSection(false);
         SendBetAmountAndCashOutPoint();
         Debug.LogError("Game is started___________________________");
         if (GameManager.instance.GetMyPlayer() != null)
@@ -112,7 +112,6 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
 
     public void SendBetAmountAndCashOutPoint()
     {
-        BettingManager.instance.SendCashoutPointToServer();
         BettingManager.instance.SendBetAmountToServer();
     }
 }

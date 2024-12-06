@@ -10,8 +10,7 @@ using Photon.Realtime;
 public static class LocalSettings
 {
     public const string ROOM_STATE = "ROOMSTATE";
-
-
+    public const float GAME_RESET_DELAY_TIME = 5f;
 
 
     public static string TimeFormat(float timeLeft)

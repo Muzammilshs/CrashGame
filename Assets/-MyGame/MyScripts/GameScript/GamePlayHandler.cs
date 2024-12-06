@@ -30,6 +30,7 @@ public class GamePlayHandler : MonoBehaviour
     [SerializeField] GameObject _rocketStartPos;
     [SerializeField] Text _currentElapsedTimeTxt;
     [SerializeField] Text _currentMultiplierTxt;
+    [SerializeField] GameObject _cashoutPlayerSign;
 
     public Action startGameExecutionAction;
     float _currentMultiplierPoint;
@@ -40,6 +41,9 @@ public class GamePlayHandler : MonoBehaviour
     float _finalCrashPoint;
     bool _isGameCrashed;
     PhotonView _photonView;
+
+    float _gameResetDelayTime = 5f;
+
     private void Start()
     {
         _photonView = GetComponent<PhotonView>();
@@ -49,8 +53,22 @@ public class GamePlayHandler : MonoBehaviour
 
 
     }
+    float _currentGameRestDelayTime = 0;
     private void Update()
     {
+        if (_currentGameRestDelayTime > 0)
+        {
+            if (PhotonNetwork.IsMasterClient)
+            {
+                _currentGameRestDelayTime -= Time.deltaTime;
+                _photonView.RPC(nameof(GameResetDelayTimeRPC), RpcTarget.All, _currentGameRestDelayTime);
+                if (_currentGameRestDelayTime <= 0.2f)
+                {
+                    _currentGameRestDelayTime = -1f;
+                    RoomStateManager.instance.UpdateCurrentRoomState(RoomNPlayerState.ROOMSTATE.Waiting);
+                }
+            }
+        }
         if (startGameExecutionAction == null)
             return;
         if (PhotonNetwork.IsMasterClient)
@@ -75,6 +93,7 @@ public class GamePlayHandler : MonoBehaviour
     }
 
     RectTransform _rocketRectTransform;
+    float _rocketX, _rocketY;
     [PunRPC]
     public void UpdateValuesToAllPlayersOnNetwork(float currentGameTime, float currentGameTimeToShow, float currentCrashPoint, bool isGameCrashed)
     {
@@ -88,22 +107,43 @@ public class GamePlayHandler : MonoBehaviour
         _currentElapsedTimeTxt.text = _currentGameTimeToShow.ToString("F0");
         _currentMultiplierTxt.text = _currentMultiplierPoint.ToString("F2");
         _isGameCrashed = isGameCrashed;
-        //_rocketObj.transform.position += new Vector3((_rocketObj.transform.position.x + _currentGameTimeToShow), _rocketObj.transform.position.y + _currentMultiplierPoint, _rocketObj.transform.position.z);
+
         if (_rocketRectTransform == null)
             _rocketRectTransform = _rocketObj.GetComponent<RectTransform>();
-        _rocketRectTransform.anchoredPosition = new Vector2(_currentGameTimeToShow * 50f, _currentMultiplierPoint * 60f);
+        _rocketX = _currentGameTimeToShow * 50f;
+        _rocketY = _currentMultiplierPoint * 60f;
+        _rocketRectTransform.anchoredPosition = new Vector2(_rocketX, _rocketY);
         if (isGameCrashed)
         {
             GameCrash();
         }
     }
+    [PunRPC]
+    public void GameResetDelayTimeRPC(float delayTime)
+    {
+        if (!PhotonNetwork.IsMasterClient)
+        {
+            _currentGameRestDelayTime = delayTime;
+        }
+    }
 
+    public void RocketPosXY(out float x, out float y)
+    {
+        x = _rocketX;
+        y = _rocketY;
+    }
+    public float GetCurrentMultiplierPointOnCashOut()
+    {
+        return _currentMultiplierPoint;
+    }
     void GameCrash()
     {
         Debug.LogError(" 2 _______game crashed: ");
 
         startGameExecutionAction = null;
         _rocketObj.SetActive(false);
+        BettingManager.instance.DisableCashOutbtn(false);
+        _currentGameRestDelayTime = LocalSettings.GAME_RESET_DELAY_TIME;
     }
     public bool IsGameCrashed()
     {
@@ -118,5 +158,30 @@ public class GamePlayHandler : MonoBehaviour
         _isGameCrashed = false;
         _rocketObj.transform.localPosition = _rocketStartPos.transform.localPosition;
         LocalSettings.SetPosAndRect(_rocketObj, _rocketStartPos.GetComponent<RectTransform>(), _rocketStartPos.transform.parent);
+        _signsOfPlayers = DestroyAndClearList(_signsOfPlayers);
+    }
+
+    List<GameObject> _signsOfPlayers = new List<GameObject>();
+    public GameObject GetCashOutPlayerSign()
+    {
+        GameObject obj = Instantiate(_cashoutPlayerSign);
+        obj.SetActive(true);
+        LocalSettings.SetPosAndRect(obj, _rocketStartPos.GetComponent<RectTransform>(), _rocketStartPos.transform.parent);
+        _signsOfPlayers.Add(obj);
+        return obj;
+    }
+    public List<GameObject> DestroyAndClearList(List<GameObject> list)
+    {
+        if (list == null)
+            return list = new List<GameObject>();
+        if (list.Count == 0)
+            return list;
+        foreach (GameObject obj in list)
+        {
+            if (obj != null)
+                Destroy(obj);
+        }
+        list.Clear();
+        return list;
     }
 }
