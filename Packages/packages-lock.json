@@ -63,7 +63,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.burst": {
-      "version": "1.8.12",
+      "version": "1.8.13",
       "depth": 2,
       "source": "registry",
       "dependencies": {
@@ -112,7 +112,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.scriptablebuildpipeline": {
-      "version": "1.21.21",
+      "version": "1.21.22",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -166,12 +166,6 @@
       "source": "registry",
       "dependencies": {},
       "url": "https://npm.cloudsmith.io/jillejr/newtonsoft-json-for-unity"
-    },
-    "jillejr.newtonsoft.json-for-unity.converters": {
-      "version": "file:Newtonsoft.Json-for-Unity.Converters",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {}
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
