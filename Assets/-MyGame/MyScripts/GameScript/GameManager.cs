@@ -35,6 +35,7 @@ public class GameManager : MonoBehaviourPunCallbacks
     [SerializeField] GameObject _waitingTimeBox;
     [SerializeField] GameObject _gamePlayBox;
     [SerializeField] GameObject _currentMultiplierBox;
+    [SerializeField] GameObject _blastPrefabSprite;
 
 
     public List<GameObject> playersList;
@@ -95,5 +96,10 @@ public class GameManager : MonoBehaviourPunCallbacks
         _waitingTimeBox.SetActive(isWaiting);
         _currentMultiplierBox.SetActive(!isWaiting);
         _gamePlayBox.SetActive(!isWaiting);
+    }
+
+    public GameObject GetBlastPrefab()
+    {
+        return Instantiate(_blastPrefabSprite);
     }
 }

@@ -39,11 +39,10 @@ public class GetJson : ES3Cloud
     }
     IEnumerator GetJsonFromServerUsingAPI(string apiURL, Action<string, bool> methodCall)
     {
-        apiURL = APIStrings.getDelayTimeBetweenRoundsAPIURL;
         using (UnityWebRequest webRequest = UnityWebRequest.Get(apiURL))
         {
-            webRequest.timeout = 15; // Optional: Set a timeout for the request
-            yield return webRequest.SendWebRequest(); // Send the web request
+            webRequest.timeout = 15;
+            yield return webRequest.SendWebRequest();
 
             if (webRequest.result == UnityWebRequest.Result.Success)
             {

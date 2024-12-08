@@ -1,9 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Sockets;
+using System.Net;
+using DG.Tweening;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.UI;
+using Newtonsoft.Json;
 
 public class GamePlayHandler : MonoBehaviour
 {
@@ -28,9 +32,11 @@ public class GamePlayHandler : MonoBehaviour
 
     [SerializeField] GameObject _rocketObj;
     [SerializeField] GameObject _rocketStartPos;
+    [SerializeField] GameObject _rocketEndPos;
     [SerializeField] Text _currentElapsedTimeTxt;
     [SerializeField] Text _currentMultiplierTxt;
     [SerializeField] GameObject _cashoutPlayerSign;
+    [SerializeField] AnimationCurve _exponentialCurve;
 
     public Action startGameExecutionAction;
     float _currentMultiplierPoint;
@@ -65,7 +71,7 @@ public class GamePlayHandler : MonoBehaviour
                 if (_currentGameRestDelayTime <= 0.2f)
                 {
                     _currentGameRestDelayTime = -1f;
-                    RoomStateManager.instance.UpdateCurrentRoomState(RoomNPlayerState.ROOMSTATE.Waiting);
+                    GameResetManager.instance.ResetWholeGame();
                 }
             }
         }
@@ -77,10 +83,12 @@ public class GamePlayHandler : MonoBehaviour
         }
 
     }
+    float _crashpointFromServer = 0f;
     public void StartPlayGame()
     {
         _currentGameTime += Time.deltaTime;
-        if (_currentGameTime > _timeToStartCrashPoint)
+        //if (_currentGameTime > _timeToStartCrashPoint)
+        if (_crashpointFromServer >= 1)
         {
             _currentMultiplierPoint += (Time.deltaTime / 4.3f);
             _currentGameTimeToShow += Time.deltaTime;
@@ -94,6 +102,8 @@ public class GamePlayHandler : MonoBehaviour
 
     RectTransform _rocketRectTransform;
     float _rocketX, _rocketY;
+    bool _isWaitingToStart;
+    private Tween _currentTween;
     [PunRPC]
     public void UpdateValuesToAllPlayersOnNetwork(float currentGameTime, float currentGameTimeToShow, float currentCrashPoint, bool isGameCrashed)
     {
@@ -105,14 +115,22 @@ public class GamePlayHandler : MonoBehaviour
         }
 
         _currentElapsedTimeTxt.text = _currentGameTimeToShow.ToString("F0");
-        _currentMultiplierTxt.text = _currentMultiplierPoint.ToString("F2");
+        _currentMultiplierTxt.text = _currentMultiplierPoint.ToString("F2") + "x";
         _isGameCrashed = isGameCrashed;
 
         if (_rocketRectTransform == null)
             _rocketRectTransform = _rocketObj.GetComponent<RectTransform>();
         _rocketX = _currentGameTimeToShow * 50f;
         _rocketY = _currentMultiplierPoint * 60f;
-        _rocketRectTransform.anchoredPosition = new Vector2(_rocketX, _rocketY);
+
+        _rocketRectTransform = _rocketObj.GetComponent<RectTransform>();
+        //_rocketRectTransform.anchoredPosition = new Vector2(_rocketX, _rocketY);
+
+        if (_isWaitingToStart)
+        {
+            MoveRocketToTarget(_rocketObj, _rocketStartPos, _rocketEndPos, 11, _exponentialCurve);
+            _isWaitingToStart = false;
+        }
         if (isGameCrashed)
         {
             GameCrash();
@@ -127,10 +145,9 @@ public class GamePlayHandler : MonoBehaviour
         }
     }
 
-    public void RocketPosXY(out float x, out float y)
+    public void RocketPosXY(out RectTransform rocketRecTransform)
     {
-        x = _rocketX;
-        y = _rocketY;
+        rocketRecTransform = _rocketRectTransform;
     }
     public float GetCurrentMultiplierPointOnCashOut()
     {
@@ -142,8 +159,19 @@ public class GamePlayHandler : MonoBehaviour
 
         startGameExecutionAction = null;
         _rocketObj.SetActive(false);
-        BettingManager.instance.DisableCashOutbtn(false);
+
         _currentGameRestDelayTime = LocalSettings.GAME_RESET_DELAY_TIME;
+        GameResetManager.instance.GetValuesOnGameCrash();
+        GameObject blast = GameManager.instance.GetBlastPrefab();
+        LocalSettings.SetPosAndRect(blast, _rocketObj.GetComponent<RectTransform>(), _rocketObj.transform);
+        blast.transform.SetParent(_rocketObj.transform.parent.parent);
+        blast.transform.position = _rocketObj.transform.position;
+        blast.SetActive(true);
+        if (_currentTween != null && _currentTween.IsActive())
+        {
+            _currentTween.Kill();
+            Debug.Log("Rocket movement stopped!");
+        }
     }
     public bool IsGameCrashed()
     {
@@ -152,13 +180,17 @@ public class GamePlayHandler : MonoBehaviour
 
     public void ResetValuesBeforeGameStart()
     {
+        _isWaitingToStart = true;
+        _crashpointFromServer = 0;
         _currentMultiplierPoint = 1;
         _currentGameTime = 0;
         _currentGameTimeToShow = 0;
         _isGameCrashed = false;
         _rocketObj.transform.localPosition = _rocketStartPos.transform.localPosition;
         LocalSettings.SetPosAndRect(_rocketObj, _rocketStartPos.GetComponent<RectTransform>(), _rocketStartPos.transform.parent);
+        _rocketObj.SetActive(true);
         _signsOfPlayers = DestroyAndClearList(_signsOfPlayers);
+        _currentMultiplierTxt.text = "1.00x";
     }
 
     List<GameObject> _signsOfPlayers = new List<GameObject>();
@@ -184,4 +216,53 @@ public class GamePlayHandler : MonoBehaviour
         list.Clear();
         return list;
     }
+
+    public void MoveRocketToTarget(GameObject rocket, GameObject startPoint, GameObject endPoint, float duration, AnimationCurve exponentialCurve)
+    {
+        rocket.transform.position = startPoint.transform.position;
+        _currentTween = rocket.transform.DOMove(endPoint.transform.position, duration)
+                                       .SetEase(exponentialCurve)
+                                       .OnComplete(OnMovementComplete);
+    }
+
+    private Vector2 WorldToUIPosition(Vector3 worldPosition, RectTransform canvasRect)
+    {
+        Vector2 screenPoint = RectTransformUtility.WorldToScreenPoint(Camera.main, worldPosition);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPoint, Camera.main, out Vector2 localPoint);
+        return localPoint;
+    }
+    private void OnMovementComplete()
+    {
+        Debug.Log("Rocket reached the target!");
+        // Add additional behavior when the rocket reaches the target
+    }
+
+    public void GetCrashPointFromServer()
+    {
+        GetJson.instance.GetJsonFromServer(APIStrings.getCrashPointAPIURL, GetCrashpointFromServer);
+    }
+
+    void GetCrashpointFromServer(string jsonResponse, bool isSuccess)
+    {
+        if (isSuccess)
+        {
+            Debug.LogError("Crash point: " + jsonResponse);
+            CrashPointGetCls crashPointGetCls = JsonConvert.DeserializeObject<CrashPointGetCls>(jsonResponse);
+            _crashpointFromServer = crashPointGetCls.number;
+            _finalCrashPoint = _crashpointFromServer;
+        }
+        else
+        {
+            Debug.LogError("Fail to get Crash point: ");
+            GetCrashPointFromServer();
+        }
+    }
 }
+
+
+public class CrashPointGetCls
+{
+    public float number { get; set; }
+    public string message { get; set; }
+}
+

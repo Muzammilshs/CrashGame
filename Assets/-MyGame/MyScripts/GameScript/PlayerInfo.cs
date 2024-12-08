@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using Photon.Pun;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.UIElements;
 using static RoomNPlayerState;
 
 public class PlayerInfo : MonoBehaviourPunCallbacks
@@ -57,23 +59,31 @@ public class PlayerInfo : MonoBehaviourPunCallbacks
 
     public void ShowCashOutPointToOtherPlayers()
     {
-        GamePlayHandler.instance.RocketPosXY(out float x, out float y);
-        float xVal = x;
-        float yVal = y;
-        Debug.LogError($"Positions got: x: {x}, y: {y}");
-        _photonView.RPC(nameof(ShowCashOutPointToOtherPlayersRPC), RpcTarget.All, xVal, yVal);
-    }
+        GamePlayHandler.instance.RocketPosXY(out RectTransform rocketRectTransform);
 
+        Vector3 position = rocketRectTransform.anchoredPosition3D;
+        Vector2 size = rocketRectTransform.sizeDelta;
+        Vector3 scale = rocketRectTransform.localScale;
+        Quaternion rotation = rocketRectTransform.localRotation;
+
+        //Debug.LogError($"Positions got: x: {x}, y: {y}");
+        _photonView.RPC(nameof(ShowCashOutPointToOtherPlayersRPC), RpcTarget.All, position, size, scale, rotation);
+    }
     [PunRPC]
-    public void ShowCashOutPointToOtherPlayersRPC(float x, float y)
+    public void ShowCashOutPointToOtherPlayersRPC(Vector3 position, Vector2 size, Vector3 scale, Quaternion rotation)
     {
-        Debug.LogError($"All players get: {x}, y: {y}");
+        //Debug.LogError($"All players get: {x}, y: {y}");
 
         GameObject sign = GamePlayHandler.instance.GetCashOutPlayerSign();
         sign.transform.GetChild(1).GetComponent<Text>().text = _photonView.Controller.NickName;
         RectTransform signRect = sign.GetComponent<RectTransform>();
 
-        signRect.anchoredPosition = new Vector2(x, y);
+        signRect.anchoredPosition3D = position;
+        signRect.sizeDelta = size;
+        signRect.localScale = scale;
+        signRect.rotation = rotation;
+
+        //signRect.anchoredPosition = new Vector2(x, y);
 
     }
 }

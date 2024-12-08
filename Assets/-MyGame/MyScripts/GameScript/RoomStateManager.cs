@@ -93,6 +93,10 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
         else
             Debug.LogError("MyPlayer is null");
         GamePlayHandler.instance.startGameExecutionAction += GamePlayHandler.instance.StartPlayGame;
+        //if(PhotonNetwork.IsMasterClient)
+        {
+            GamePlayHandler.instance.GetCrashPointFromServer();
+        }
     }
     public void SetRoomStateFromNetworkCustomProperty()
     {

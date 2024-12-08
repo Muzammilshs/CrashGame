@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Photon.Pun;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -62,7 +63,8 @@ public class PlayerLogin : ES3Cloud
         // Join Room 
         if (!LocalSettings.isBlocked)
         {
-            RoomManager.instance.JoinOrCreateRoom();
+            if (!PhotonNetwork.InRoom)
+                RoomManager.instance.JoinOrCreateRoom();
             GameManager.isPlayerLogedIn = true;
         }
         else
