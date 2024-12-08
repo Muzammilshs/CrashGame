@@ -1,10 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class BettingManager : MonoBehaviour
+public class BettingManager : ES3Cloud
 {
     #region Creating Instance
     private static BettingManager _instance;
@@ -22,6 +23,9 @@ public class BettingManager : MonoBehaviour
     {
         if (_instance == null)
             _instance = this;
+    }
+    public BettingManager(string url, string apiKey) : base(url, apiKey)
+    {
     }
     #endregion
 
@@ -42,6 +46,9 @@ public class BettingManager : MonoBehaviour
     [SerializeField] Button _autoCashOutBtnMinus;
 
     bool _isPlayerPlacedBet;
+
+
+
     void Start()
     {
         _wm = WalletManager.instance;
@@ -119,8 +126,8 @@ public class BettingManager : MonoBehaviour
         {
             float tempMultiplier = _currentMultiplier;
             tempMultiplier -= 0.1f;
-            if (tempMultiplier < 0)
-                tempMultiplier = 0;
+            if (tempMultiplier < 1)
+                tempMultiplier = 1;
             _currentMultiplier = tempMultiplier;
             multiplierTxt.text = _currentMultiplier.ToString();
         }
@@ -134,9 +141,9 @@ public class BettingManager : MonoBehaviour
         {
             multiplier = 100f;
         }
-        else if (multiplier < 0)
+        else if (multiplier < 1)
         {
-            multiplier = 0;
+            multiplier = 1;
         }
         _currentMultiplier = multiplier;
         multiplierTxt.text = _currentMultiplier.ToString();
@@ -181,22 +188,44 @@ public class BettingManager : MonoBehaviour
     #endregion
 
     #region Send bets to server on game start
-
+    const string EMAIL = "email";
+    const string BETAMOUNT = "bet_amount";
+    const string AUTOCASHOUTPOINT = "autocrash_point";
     public void SendBetAmountToServer()
     {
         if (!_isPlayerPlacedBet)
+        {
+            autoCashOutBtn.interactable = false;
             return;
-        float autoCashoutMultiplier = 0;
+        }
+        if (_currentBetAmount <= 0)
+        {
+            autoCashOutBtn.interactable = false;
+            return;
+        }
+        float autoCashoutMultiplier = 1;
 
-        if (_currentMultiplier > 0)
+        if (_currentMultiplier > 1)
         {
             // send cash out point to server
+            autoCashoutMultiplier = _currentMultiplier;
         }
-        if (_currentBetAmount > 0)
-        {
 
-            // Send bet amount and auto cash point to server here
-        }
+        // Send bet amount and auto cash point to server here
+        double amount = LocalSettings.walletAmount - _currentBetAmount;
+        LocalSettings.walletAmount = amount;
+        UIManager.instance.UpdateWalletAmountTxt();
+
+        formData = new List<KeyValuePair<string, string>>();
+        AddPOSTField(EMAIL, LocalSettings.emailID);
+        AddPOSTField(BETAMOUNT, _currentBetAmount.ToString());
+        AddPOSTField(AUTOCASHOUTPOINT, autoCashoutMultiplier.ToString());
+        GetJson.instance.PostDataAndGetResponseFromServer(APIStrings.sendBetToServerAPIURL, formData, OnBetPlacedResponseJson);
+
+    }
+    void OnBetPlacedResponseJson(string json, bool isSuccess)
+    {
+        Debug.LogError("Bet placed json: " + json);
     }
 
 
@@ -208,7 +237,7 @@ public class BettingManager : MonoBehaviour
     public void ResetThingsBettingManager()
     {
         _currentBetAmount = 0;
-        _currentMultiplier = 0;
+        _currentMultiplier = 1;
         betAmountTxt.text = _currentBetAmount.ToString();
         multiplierTxt.text = _currentMultiplier.ToString();
         ActivateBettingSection(true);
@@ -226,20 +255,64 @@ public class BettingManager : MonoBehaviour
             Debug.LogError("First login before placing bet");
             return;
         }
+        if (_currentBetAmount <= 0)
+        {
+            Debug.LogError("Bet amount should be greater on 1 ");
+            return;
+        }
         placeBetBtn.interactable = false;
 
         _isPlayerPlacedBet = _currentBetAmount > 0 ? true : false;
 
     }
-
+    const string MANUALCASHOUTPOINT = "manual_crash_point";
     public void OnCashOutBtnClick()
     {
+        if (!_isPlayerPlacedBet)
+        {
+            return;
+        }
         float cashOutMultiplierSendToServer = GamePlayHandler.instance.GetCurrentMultiplierPointOnCashOut();
-        Debug.LogError("Cashing out start at multiplier: ");
+        Debug.LogError("Cashing out at multiplier: ");
         GameManager.instance.GetMyPlayer().ShowCashOutPointToOtherPlayers();
         autoCashOutBtn.interactable = false;
+        formData = new List<KeyValuePair<string, string>>();
+        AddPOSTField(EMAIL, LocalSettings.emailID);
+        AddPOSTField(BETAMOUNT, _currentBetAmount.ToString());
+        AddPOSTField(MANUALCASHOUTPOINT, cashOutMultiplierSendToServer.ToString());
+        GetJson.instance.PostDataAndGetResponseFromServer(APIStrings.cashoutOnBtnAPIURL, formData, OnCashOutResponseJson);
+    }
+    public void OnAutoCashOutCall(float multiplierVal)
+    {
+        if (!_isPlayerPlacedBet || _currentMultiplier <= 1)
+            return;
+        if (multiplierVal < _currentMultiplier)
+            return;
+        _isPlayerPlacedBet = false;
+        float cashOutMultiplierSendToServer = GamePlayHandler.instance.GetCurrentMultiplierPointOnCashOut();
+        Debug.LogError("Auto cash out multiplier ");
+        GameManager.instance.GetMyPlayer().ShowCashOutPointToOtherPlayers();
+        autoCashOutBtn.interactable = false;
+        //formData = new List<KeyValuePair<string, string>>();
+        //AddPOSTField(EMAIL, LocalSettings.emailID);
+        //AddPOSTField(BETAMOUNT, _currentBetAmount.ToString());
+        //AddPOSTField(MANUALCASHOUTPOINT, cashOutMultiplierSendToServer.ToString());
+        //GetJson.instance.PostDataAndGetResponseFromServer(APIStrings.cashoutOnBtnAPIURL, formData, OnCashOutResponseJson);
     }
 
+    void OnCashOutResponseJson(string json, bool isSuccess)
+    {
+        Debug.LogError("Bet placed json: " + json);
+        CashOutRootCls cashOutRootCls = JsonConvert.DeserializeObject<CashOutRootCls>(json);
+        LocalSettings.walletAmount = cashOutRootCls.new_balance;
+        // Show winning animations 
+    }
     #endregion
 
+}
+public class CashOutRootCls
+{
+    public string status { get; set; }
+    public double amount_won { get; set; }
+    public double new_balance { get; set; }
 }

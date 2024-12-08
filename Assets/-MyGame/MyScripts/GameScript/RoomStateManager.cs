@@ -77,7 +77,7 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
     void TriggerStateWaitingForPlayers()
     {
         GameManager.instance.ShowWaitingOrMultiPlierBoxInGame(true);
-        GameStartManager.instance.GetDelayTimeBetweenRounds();
+        //GameStartManager.instance.GetDelayTimeBetweenRounds();
         BettingManager.instance.ActivateBettingSection(true);
         BettingManager.instance.ResetThingsBettingManager();
     }

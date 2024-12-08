@@ -52,14 +52,16 @@ public class PlayerLogin : ES3Cloud
     {
         if (!isSuccess)
             return;
+        
         PlayerLoginRootCls playerLoginRootCls = JsonConvert.DeserializeObject<PlayerLoginRootCls>(json);
         LocalSettings.userName = playerLoginRootCls.data.username;
         LocalSettings.emailID = playerLoginRootCls.data.email;
         LocalSettings.walletID = playerLoginRootCls.data.wallet_number;
         LocalSettings.walletAmount = Convert.ToDouble(playerLoginRootCls.data.wallet_balance);
+        UIManager.instance.UpdateWalletAmountTxt();
         LocalSettings.isBlocked = playerLoginRootCls.data.status == "Active" ? false : true;
-
-        GameStartManager.instance.GetDelayTimeBetweenRounds();
+        if(!GameManager.isPlayerLogedIn && !LocalSettings.isBlocked)
+            GameStartManager.instance.GetDelayTimeBetweenRounds();
         // Join Room 
         if (!LocalSettings.isBlocked)
         {

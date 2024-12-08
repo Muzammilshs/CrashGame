@@ -81,7 +81,7 @@ public class GamePlayHandler : MonoBehaviour
         {
             startGameExecutionAction?.Invoke();
         }
-
+        BettingManager.instance.OnAutoCashOutCall(_currentMultiplierPoint);
     }
     float _crashpointFromServer = 0f;
     public void StartPlayGame()
@@ -124,7 +124,7 @@ public class GamePlayHandler : MonoBehaviour
         _rocketY = _currentMultiplierPoint * 60f;
 
         _rocketRectTransform = _rocketObj.GetComponent<RectTransform>();
-        //_rocketRectTransform.anchoredPosition = new Vector2(_rocketX, _rocketY);
+        
 
         if (_isWaitingToStart)
         {
