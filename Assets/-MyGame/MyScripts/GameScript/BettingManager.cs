@@ -203,7 +203,7 @@ public class BettingManager : ES3Cloud
             autoCashOutBtn.interactable = false;
             return;
         }
-        float autoCashoutMultiplier = 1;
+        float autoCashoutMultiplier = 0;
 
         if (_currentMultiplier > 1)
         {
@@ -225,7 +225,9 @@ public class BettingManager : ES3Cloud
     }
     void OnBetPlacedResponseJson(string json, bool isSuccess)
     {
-        Debug.LogError("Bet placed json: " + json);
+        Debug.LogError("111111 Bet placed json: " + json);
+        CashOutRootCls cashOutRootCls = JsonConvert.DeserializeObject<CashOutRootCls>(json);
+        LocalSettings.walletAmount = cashOutRootCls.new_balance;
     }
 
 
@@ -273,7 +275,7 @@ public class BettingManager : ES3Cloud
             return;
         }
         float cashOutMultiplierSendToServer = GamePlayHandler.instance.GetCurrentMultiplierPointOnCashOut();
-        Debug.LogError("Cashing out at multiplier: ");
+        Debug.LogError("Cashing out at multiplier: " + cashOutMultiplierSendToServer + "        BetAmount: " + _currentBetAmount);
         GameManager.instance.GetMyPlayer().ShowCashOutPointToOtherPlayers();
         autoCashOutBtn.interactable = false;
         formData = new List<KeyValuePair<string, string>>();
@@ -293,11 +295,8 @@ public class BettingManager : ES3Cloud
         Debug.LogError("Auto cash out multiplier ");
         GameManager.instance.GetMyPlayer().ShowCashOutPointToOtherPlayers();
         autoCashOutBtn.interactable = false;
-        //formData = new List<KeyValuePair<string, string>>();
-        //AddPOSTField(EMAIL, LocalSettings.emailID);
-        //AddPOSTField(BETAMOUNT, _currentBetAmount.ToString());
-        //AddPOSTField(MANUALCASHOUTPOINT, cashOutMultiplierSendToServer.ToString());
-        //GetJson.instance.PostDataAndGetResponseFromServer(APIStrings.cashoutOnBtnAPIURL, formData, OnCashOutResponseJson);
+        LocalSettings.walletAmount += (cashOutMultiplierSendToServer * _currentBetAmount);
+
     }
 
     void OnCashOutResponseJson(string json, bool isSuccess)
@@ -305,6 +304,7 @@ public class BettingManager : ES3Cloud
         Debug.LogError("Bet placed json: " + json);
         CashOutRootCls cashOutRootCls = JsonConvert.DeserializeObject<CashOutRootCls>(json);
         LocalSettings.walletAmount = cashOutRootCls.new_balance;
+        UIManager.instance.UpdateWalletAmountTxt();
         // Show winning animations 
     }
     #endregion

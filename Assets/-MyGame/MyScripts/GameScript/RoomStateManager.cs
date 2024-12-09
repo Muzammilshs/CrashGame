@@ -76,6 +76,7 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
 
     void TriggerStateWaitingForPlayers()
     {
+        GamePlayHandler.instance.ResetValuesBeforeGameStart();
         GameManager.instance.ShowWaitingOrMultiPlierBoxInGame(true);
         //GameStartManager.instance.GetDelayTimeBetweenRounds();
         BettingManager.instance.ActivateBettingSection(true);
@@ -93,7 +94,7 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
         else
             Debug.LogError("MyPlayer is null");
         GamePlayHandler.instance.startGameExecutionAction += GamePlayHandler.instance.StartPlayGame;
-        //if(PhotonNetwork.IsMasterClient)
+        //if (PhotonNetwork.IsMasterClient)
         {
             GamePlayHandler.instance.GetCrashPointFromServer();
         }

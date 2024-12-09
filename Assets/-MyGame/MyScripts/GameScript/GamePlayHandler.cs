@@ -8,6 +8,7 @@ using Photon.Pun;
 using UnityEngine;
 using UnityEngine.UI;
 using Newtonsoft.Json;
+using UnityEditor;
 
 public class GamePlayHandler : MonoBehaviour
 {
@@ -53,7 +54,7 @@ public class GamePlayHandler : MonoBehaviour
     private void Start()
     {
         _photonView = GetComponent<PhotonView>();
-        _finalCrashPoint = 3.5f;
+        _finalCrashPoint = 0;
         _timeToStartCrashPoint = 2f;
         ResetValuesBeforeGameStart();
 
@@ -87,7 +88,6 @@ public class GamePlayHandler : MonoBehaviour
     public void StartPlayGame()
     {
         _currentGameTime += Time.deltaTime;
-        //if (_currentGameTime > _timeToStartCrashPoint)
         if (_crashpointFromServer >= 1)
         {
             _currentMultiplierPoint += (Time.deltaTime / 4.3f);
@@ -96,7 +96,7 @@ public class GamePlayHandler : MonoBehaviour
             {
                 _isGameCrashed = true;
             }
-            _photonView.RPC(nameof(UpdateValuesToAllPlayersOnNetwork), RpcTarget.All, _currentGameTime, _currentGameTimeToShow, _currentMultiplierPoint, _isGameCrashed);
+            _photonView.RPC(nameof(UpdateValuesToAllPlayersOnNetwork), RpcTarget.All, _currentGameTime, _currentGameTimeToShow, _currentMultiplierPoint, _isGameCrashed, _finalCrashPoint);
         }
     }
 
@@ -105,7 +105,7 @@ public class GamePlayHandler : MonoBehaviour
     bool _isWaitingToStart;
     private Tween _currentTween;
     [PunRPC]
-    public void UpdateValuesToAllPlayersOnNetwork(float currentGameTime, float currentGameTimeToShow, float currentCrashPoint, bool isGameCrashed)
+    public void UpdateValuesToAllPlayersOnNetwork(float currentGameTime, float currentGameTimeToShow, float currentCrashPoint, bool isGameCrashed, float cp)
     {
         if (!PhotonNetwork.IsMasterClient)
         {
@@ -113,7 +113,8 @@ public class GamePlayHandler : MonoBehaviour
             _currentGameTime = currentGameTime;
             _currentGameTimeToShow = currentGameTimeToShow;
         }
-
+        if (!_rocketObj.activeInHierarchy)
+            _rocketObj.SetActive(true);
         _currentElapsedTimeTxt.text = _currentGameTimeToShow.ToString("F0");
         _currentMultiplierTxt.text = _currentMultiplierPoint.ToString("F2") + "x";
         _isGameCrashed = isGameCrashed;
@@ -124,11 +125,17 @@ public class GamePlayHandler : MonoBehaviour
         _rocketY = _currentMultiplierPoint * 60f;
 
         _rocketRectTransform = _rocketObj.GetComponent<RectTransform>();
-        
+
+        if (_currentGameTimeToShow > LocalSettings.GRAPH_X_AXIS_LIMIT)
+            ScaleBuilder.instance.DrawLinePointsX(_currentGameTimeToShow);
+
+        if (_currentMultiplierPoint > LocalSettings.GRAPH_Y_AXIS_LIMIT)
+            ScaleBuilder.instance.DrawLinePointsY(_currentMultiplierPoint);
+
 
         if (_isWaitingToStart)
         {
-            MoveRocketToTarget(_rocketObj, _rocketStartPos, _rocketEndPos, 11, _exponentialCurve);
+            MoveRocketToTarget(_rocketObj, _rocketStartPos, _rocketEndPos, 12, _exponentialCurve);
             _isWaitingToStart = false;
         }
         if (isGameCrashed)
@@ -186,11 +193,15 @@ public class GamePlayHandler : MonoBehaviour
         _currentGameTime = 0;
         _currentGameTimeToShow = 0;
         _isGameCrashed = false;
-        _rocketObj.transform.localPosition = _rocketStartPos.transform.localPosition;
+        _rocketObj.transform.position = _rocketStartPos.transform.position;
         LocalSettings.SetPosAndRect(_rocketObj, _rocketStartPos.GetComponent<RectTransform>(), _rocketStartPos.transform.parent);
         _rocketObj.SetActive(true);
         _signsOfPlayers = DestroyAndClearList(_signsOfPlayers);
         _currentMultiplierTxt.text = "1.00x";
+
+        ScaleBuilder.instance.DrawLinePointsX(LocalSettings.GRAPH_X_AXIS_LIMIT);
+        ScaleBuilder.instance.DrawLinePointsY(LocalSettings.GRAPH_Y_AXIS_LIMIT);
+        Debug.LogError("Game is resetting from game play handler");
     }
 
     List<GameObject> _signsOfPlayers = new List<GameObject>();
@@ -234,6 +245,7 @@ public class GamePlayHandler : MonoBehaviour
     private void OnMovementComplete()
     {
         Debug.Log("Rocket reached the target!");
+        //EditorApplication.isPaused = true;
         // Add additional behavior when the rocket reaches the target
     }
 
@@ -246,10 +258,11 @@ public class GamePlayHandler : MonoBehaviour
     {
         if (isSuccess)
         {
-            Debug.LogError("Crash point: " + jsonResponse);
             CrashPointGetCls crashPointGetCls = JsonConvert.DeserializeObject<CrashPointGetCls>(jsonResponse);
             _crashpointFromServer = crashPointGetCls.number;
+            //_crashpointFromServer = 6;
             _finalCrashPoint = _crashpointFromServer;
+            Debug.LogError("Final  Crash point: ___________________________________ " + _finalCrashPoint);
         }
         else
         {

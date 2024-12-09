@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Photon.Pun;
+using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -102,4 +103,34 @@ public class GameManager : MonoBehaviourPunCallbacks
     {
         return Instantiate(_blastPrefabSprite);
     }
+
+    #region When master client goes to background
+
+    void OnApplicationPause(bool pauseStatus)
+    {
+        if (pauseStatus && PhotonNetwork.IsMasterClient)
+        {
+            Debug.Log("Master Client went into the background.");
+
+            // Optionally transfer Master Client role manually
+            TransferMasterClient();
+        }
+    }
+
+    void TransferMasterClient()
+    {
+        // Find a suitable new Master Client
+        foreach (Player player in PhotonNetwork.PlayerList)
+        {
+            if (!player.IsMasterClient)
+            {
+                PhotonNetwork.SetMasterClient(player);
+                Debug.Log($"Transferred Master Client role to: {player.NickName}");
+                break;
+            }
+        }
+    }
+
+
+    #endregion
 }

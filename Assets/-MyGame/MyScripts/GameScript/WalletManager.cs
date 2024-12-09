@@ -21,40 +21,15 @@ public class WalletManager : MonoBehaviour
     }
     #endregion
 
-
-    [SerializeField] Text[] _totalAmountTxt;
-
-
-
-
     private void Awake()
     {
         if (_instance == null)
             _instance = this;
     }
-    void Start()
-    {
-        UpdateTotalAmountTexts();
-    }
 
-    // From server we will get total amount here.
     public double GetTotalAmount()
     {
         return LocalSettings.walletAmount;
-    }
-
-    public void AddToTotalAmount(double amount)
-    {
-        LocalSettings.walletAmount += amount;
-        UpdateTotalAmountTexts();
-    }
-
-    public void UpdateTotalAmountTexts()
-    {
-        foreach (var txt in _totalAmountTxt)
-        {
-            txt.text = LocalSettings.walletAmount.ToString();
-        }
     }
 
 }

@@ -28,7 +28,7 @@ public class GameResetManager : MonoBehaviour
 
     public void ResetWholeGame()
     {
-        GamePlayHandler.instance.ResetValuesBeforeGameStart();
+        //GamePlayHandler.instance.ResetValuesBeforeGameStart();
         RoomStateManager.instance.UpdateCurrentRoomState(RoomNPlayerState.ROOMSTATE.Waiting);
     }
 

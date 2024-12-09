@@ -14,7 +14,7 @@ public class PlayerInfo : MonoBehaviourPunCallbacks
     [SerializeField] PlayerState _playerState;
     void Start()
     {
-        GameManager.instance.SetPlayerPos(gameObject);
+        //GameManager.instance.SetPlayerPos(gameObject);
         _photonView = GetComponent<PhotonView>();
         _playerState = GetComponent<PlayerState>();
         _playerNameTxt.text = _photonView.Controller.NickName;
