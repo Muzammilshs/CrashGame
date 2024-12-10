@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Photon.Pun;
 using UnityEngine;
-using UnityEngine.Networking;
-using UnityEngine.UI;
 
 public class PlayerLogin : ES3Cloud
 {
@@ -37,9 +34,16 @@ public class PlayerLogin : ES3Cloud
     public void GetPlayerDataWithLogin()
     {
         formData = new List<KeyValuePair<string, string>>();
-        string playerName = "Muzammil New";
-        string email = "muzammilNew@gmail.com";
-        string walletNumber = "1234567890";
+
+        if (LocalSettings.emailID == "")
+        {
+            LocalSettings.emailID = GenerateRandomEmail();
+            LocalSettings.userName = GenerateRandomName();
+            LocalSettings.walletID = UnityEngine.Random.Range(10000000, 100000000).ToString();
+        }
+        string playerName = LocalSettings.emailID;
+        string email = LocalSettings.emailID;
+        string walletNumber = LocalSettings.walletID;
 
         AddPOSTField(USERNAME, playerName);
         AddPOSTField(EMAIL, email);
@@ -52,7 +56,7 @@ public class PlayerLogin : ES3Cloud
     {
         if (!isSuccess)
             return;
-        
+
         PlayerLoginRootCls playerLoginRootCls = JsonConvert.DeserializeObject<PlayerLoginRootCls>(json);
         LocalSettings.userName = playerLoginRootCls.data.username;
         LocalSettings.emailID = playerLoginRootCls.data.email;
@@ -60,7 +64,7 @@ public class PlayerLogin : ES3Cloud
         LocalSettings.walletAmount = Convert.ToDouble(playerLoginRootCls.data.wallet_balance);
         UIManager.instance.UpdateWalletAmountTxt();
         LocalSettings.isBlocked = playerLoginRootCls.data.status == "Active" ? false : true;
-        if(!GameManager.isPlayerLogedIn && !LocalSettings.isBlocked)
+        if (!GameManager.isPlayerLogedIn && !LocalSettings.isBlocked)
             GameStartManager.instance.GetDelayTimeBetweenRounds();
         // Join Room 
         if (!LocalSettings.isBlocked)
@@ -74,6 +78,39 @@ public class PlayerLogin : ES3Cloud
             // If blocked then functionality here
             GameManager.isPlayerLogedIn = false;
         }
+    }
+    string GenerateRandomName()
+    {
+        // Define lists of first and last name parts
+        string[] firstNames = { "Alex", "Jamie", "Taylor", "Jordan", "Casey", "Riley", "Morgan", "Avery" };
+        string[] lastNames = { "Smith", "Johnson", "Brown", "Taylor", "Anderson", "White", "Lee", "Walker" };
+
+        // Pick a random first name and last name
+        string firstName = firstNames[UnityEngine.Random.Range(0, firstNames.Length)];
+        string lastName = lastNames[UnityEngine.Random.Range(0, lastNames.Length)];
+
+        // Combine to create a full name
+        return firstName + " " + lastName;
+    }
+    string GenerateRandomEmail()
+    {
+        // Define random elements
+        string[] domains = { "gmail.com", "yahoo.com", "outlook.com", "example.com" };
+        string chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+        // Generate random username
+        int usernameLength = UnityEngine.Random.Range(5, 12);
+        string username = "";
+        for (int i = 0; i < usernameLength; i++)
+        {
+            username += chars[UnityEngine.Random.Range(0, chars.Length)];
+        }
+
+        // Pick a random domain
+        string domain = domains[UnityEngine.Random.Range(0, domains.Length)];
+
+        // Combine to create email
+        return username + "@" + domain;
     }
 }
 
