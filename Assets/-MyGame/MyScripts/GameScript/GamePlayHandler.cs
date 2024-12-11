@@ -39,6 +39,8 @@ public class GamePlayHandler : MonoBehaviour
     [SerializeField] GameObject _cashoutPlayerSign;
     [SerializeField] AnimationCurve _exponentialCurve;
 
+    [SerializeField] bool _iWonGame;
+
     public Action startGameExecutionAction;
     float _currentMultiplierPoint;
     float _currentGameTime;
@@ -179,6 +181,7 @@ public class GamePlayHandler : MonoBehaviour
             _currentTween.Kill();
             Debug.Log("Rocket movement stopped!");
         }
+        LeaderBoardHandler.instance.SortLeaderboard();
     }
     public bool IsGameCrashed()
     {
@@ -187,6 +190,7 @@ public class GamePlayHandler : MonoBehaviour
 
     public void ResetValuesBeforeGameStart()
     {
+        _iWonGame = false;
         _isWaitingToStart = true;
         _crashpointFromServer = 0;
         _currentMultiplierPoint = 1;
@@ -249,6 +253,14 @@ public class GamePlayHandler : MonoBehaviour
         // Add additional behavior when the rocket reaches the target
     }
 
+    //public void CheckIfPlayerWon(bool isWon, int rank)
+    //{
+    //    if (!isWon)
+    //        return;
+    //    // show win panel and share on twitter option 
+
+    //    LeaderBoardHandler.instance.ShareMessageOnX(rank);
+    //}
     public void GetCrashPointFromServer()
     {
         GetJson.instance.GetJsonFromServer(APIStrings.getCrashPointAPIURL, GetCrashpointFromServer);

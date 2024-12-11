@@ -11,17 +11,34 @@ public class LeaderboardItemDetail : MonoBehaviour
 
     int _rank;
     string _userName;
-    string _walletAmount;
+    string _winAmount;
+    [ShowOnly]
+    public string emailID;
+    [ShowOnly]
+    public int winAmount = 0;
     public void FillFieldsLeaderBoard(LeaderBoardDetailRootCls ldrc, Color bgClr)
     {
         GetComponent<Image>().color = bgClr;
         _rank = ldrc.rank;
         _userName = ldrc.username;
-        _walletAmount = ldrc.wallet_balance;
+        _winAmount = ldrc.wallet_balance;
+        winAmount = int.Parse(_winAmount);
+        emailID = ldrc.email;
 
-
-        _rankTxt.text = _rank.ToString();
-        _userNameTxt.text = _userName.ToString();
-        _walletAmountTxt.text = _walletAmount.ToString();
+        UpDateUIFields();
     }
+
+    public void UpdateRank(int rnk)
+    {
+        _rank = rnk;
+        UpDateUIFields();
+    }
+    void UpDateUIFields()
+    {
+        string rnk = _rank == 0 ? "" : _rank.ToString();
+        _rankTxt.text = rnk;
+        _userNameTxt.text = _userName.ToString();
+        _walletAmountTxt.text = _winAmount;
+    }
+
 }

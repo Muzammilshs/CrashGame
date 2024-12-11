@@ -85,6 +85,7 @@ public class RoomStateManager : MonoBehaviourPunCallbacks
 
     void TriggerStateGameIsPlaying()
     {
+        LeaderBoardHandler.instance.ClearLeaderBoardValues();
         GameManager.instance.ShowWaitingOrMultiPlierBoxInGame(false);
         BettingManager.instance.ActivateBettingSection(false);
         SendBetAmountAndCashOutPoint();

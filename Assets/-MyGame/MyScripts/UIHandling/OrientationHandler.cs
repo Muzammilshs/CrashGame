@@ -1,15 +1,14 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class OrientationHandler : MonoBehaviour
 {
-    public bool setLandscape = false;
     public OrientationObjets[] orientationObjets;
+    bool _isLand;
     void Start()
     {
-        SetOrientation(setLandscape);
+        StartCoroutine(SetRemainingTime());
     }
 
     public void SetOrientation(bool isLandscape)
@@ -18,6 +17,21 @@ public class OrientationHandler : MonoBehaviour
         {
             RectTransform posObj = isLandscape ? orientationObjets[i].landscapePos : orientationObjets[i].portraitPos;
             LocalSettings.SetPosAndRect(orientationObjets[i].originalObj, posObj, posObj.transform.parent);
+        }
+    }
+
+
+    IEnumerator SetRemainingTime()
+    {
+        while (true)
+        {
+            bool isLandscape = Screen.width > Screen.height;
+            if (_isLand != isLandscape)
+            {
+                _isLand = isLandscape;
+                SetOrientation(_isLand);
+            }
+            yield return new WaitForSecondsRealtime(1f);
         }
     }
 }

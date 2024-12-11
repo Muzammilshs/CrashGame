@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -57,7 +58,7 @@ public class PlayerInfo : MonoBehaviourPunCallbacks
         _playerState.SetPlayerState(state);
     }
 
-    public void ShowCashOutPointToOtherPlayers()
+    public void ShowCashOutPointToOtherPlayers(float cashoutpoint)
     {
         GamePlayHandler.instance.RocketPosXY(out RectTransform rocketRectTransform);
 
@@ -67,13 +68,14 @@ public class PlayerInfo : MonoBehaviourPunCallbacks
         Quaternion rotation = rocketRectTransform.localRotation;
 
         //Debug.LogError($"Positions got: x: {x}, y: {y}");
-        _photonView.RPC(nameof(ShowCashOutPointToOtherPlayersRPC), RpcTarget.All, position, size, scale, rotation);
+        double betAmount = BettingManager.instance.getCurrentBetAmount;
+        float multiplier = cashoutpoint;
+        int winAmount = Convert.ToInt32(cashoutpoint * betAmount);
+        _photonView.RPC(nameof(ShowCashOutPointToOtherPlayersRPC), RpcTarget.All, position, size, scale, rotation, LocalSettings.userName, winAmount.ToString(), LocalSettings.emailID);
     }
     [PunRPC]
-    public void ShowCashOutPointToOtherPlayersRPC(Vector3 position, Vector2 size, Vector3 scale, Quaternion rotation)
+    public void ShowCashOutPointToOtherPlayersRPC(Vector3 position, Vector2 size, Vector3 scale, Quaternion rotation, string userName, string winAmount, string emailID)
     {
-        //Debug.LogError($"All players get: {x}, y: {y}");
-
         GameObject sign = GamePlayHandler.instance.GetCashOutPlayerSign();
         sign.transform.GetChild(1).GetComponent<Text>().text = _photonView.Controller.NickName;
         RectTransform signRect = sign.GetComponent<RectTransform>();
@@ -82,8 +84,7 @@ public class PlayerInfo : MonoBehaviourPunCallbacks
         signRect.sizeDelta = size;
         signRect.localScale = scale;
         signRect.rotation = rotation;
-
-        //signRect.anchoredPosition = new Vector2(x, y);
-
+        // Create and Show leaderboard item in UI
+        LeaderBoardHandler.instance.CreateUIOfLeaderboardPlayerRecord(userName, winAmount, emailID);
     }
 }

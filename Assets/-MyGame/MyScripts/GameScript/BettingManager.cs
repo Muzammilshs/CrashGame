@@ -47,7 +47,7 @@ public class BettingManager : ES3Cloud
 
     bool _isPlayerPlacedBet;
 
-
+    int _rank = 0;
 
     void Start()
     {
@@ -234,6 +234,9 @@ public class BettingManager : ES3Cloud
     #endregion
 
 
+    public double getCurrentBetAmount => _currentBetAmount;
+
+
     #region Reset things
 
     public void ResetThingsBettingManager()
@@ -244,6 +247,7 @@ public class BettingManager : ES3Cloud
         multiplierTxt.text = _currentMultiplier.ToString();
         ActivateBettingSection(true);
         _isPlayerPlacedBet = false;
+        _rank = 0;
     }
 
     #endregion
@@ -276,7 +280,7 @@ public class BettingManager : ES3Cloud
         }
         float cashOutMultiplierSendToServer = GamePlayHandler.instance.GetCurrentMultiplierPointOnCashOut();
         Debug.LogError("Cashing out at multiplier: " + cashOutMultiplierSendToServer + "        BetAmount: " + _currentBetAmount);
-        GameManager.instance.GetMyPlayer().ShowCashOutPointToOtherPlayers();
+        GameManager.instance.GetMyPlayer().ShowCashOutPointToOtherPlayers(cashOutMultiplierSendToServer);
         autoCashOutBtn.interactable = false;
         formData = new List<KeyValuePair<string, string>>();
         AddPOSTField(EMAIL, LocalSettings.emailID);
@@ -293,10 +297,10 @@ public class BettingManager : ES3Cloud
         _isPlayerPlacedBet = false;
         float cashOutMultiplierSendToServer = GamePlayHandler.instance.GetCurrentMultiplierPointOnCashOut();
         Debug.LogError("Auto cash out multiplier ");
-        GameManager.instance.GetMyPlayer().ShowCashOutPointToOtherPlayers();
+        GameManager.instance.GetMyPlayer().ShowCashOutPointToOtherPlayers(cashOutMultiplierSendToServer);
         autoCashOutBtn.interactable = false;
         LocalSettings.walletAmount += (cashOutMultiplierSendToServer * _currentBetAmount);
-
+        //GamePlayHandler.instance.CheckIfPlayerWon(true, _rank);
     }
 
     void OnCashOutResponseJson(string json, bool isSuccess)
